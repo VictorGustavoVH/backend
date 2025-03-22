@@ -141,31 +141,41 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
 
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    // 1) Generar slug a partir del nombre enviado
-    const rawName = req.body.name; // "Mi Producto"
-    const slugName = slug(rawName, ''); // "MiProducto" (sin espacios)
+    // 1) Genera slug
+    const rawName = req.body.name;
+    const slugName = slug(rawName, '');
 
-    // 2) Verificar si existe un producto con ese slug
-    const existing = await Product.findOne({ name: slugName });
-    if (existing) {
+    // 2) Verifica si existe
+    const existingProduct = await Product.findOne({ name: slugName });
+    if (existingProduct) {
       res.status(409).json({ error: 'Producto ya registrado' });
+      return; // IMPORTANTE: para no seguir
     }
 
-    // 3) Crear el objeto Product, sobreescribiendo 'name' con el slug
-    //    Los demás campos (description, category, brand, price, etc.) se toman de req.body
+    // 3) Crea el producto
     const product = new Product({
-      ...req.body,
-      name: slugName
+      name: slugName,
+      description: req.body.description,
+      category: req.body.category,
+      image: req.body.image || '',
+      brand: req.body.brand || '',
+      price: req.body.price || 0,
+      stock: req.body.stock || 0,
     });
 
     await product.save();
 
-    res.status(201).send('Producto registrado correctamente');
+    // 4) Retornamos el product o un mensaje con el slug
+    res.status(201).json({
+      message: 'Product created successfully',
+      slug: product.name, 
+    });
   } catch (error) {
     console.error('Error al crear producto:', error);
     res.status(500).json({ error: 'Error interno al crear el producto' });
   }
 };
+
 
 export const getUsers = async (req: Request, res: Response) => {
   const users = await User.find().select('username email role');
@@ -187,67 +197,68 @@ export const deleteUser = async (req: Request, res: Response) => {
 
 export const uploadImageP = async (req: Request, res: Response): Promise<void> => {
   try {
-    const form = formidable({ multiples: false }); // parsearemos un solo archivo "file"
+    const form = formidable({ multiples: false });
 
     form.parse(req, async (err, fields, files) => {
-      // 1) Validar errores de parseo
+      // 1) Error al parsear
       if (err) {
-        console.error("Error al parsear el form:", err);
+        console.error("Error al parsear form:", err);
         res.status(500).json({ error: 'Error al procesar el formulario' });
         return;
       }
 
-      // 2) Verificar que exista el archivo "file"
+      // 2) Verifica si llegó "file"
       if (!files.file) {
-        res.status(400).json({ error: "No se envió ningún archivo con el campo 'file'" });
+        res.status(400).json({ error: "No se envió ningún archivo en 'file'" });
         return;
       }
-      // form puede devolver `files.file` como array o como objeto
       const file = Array.isArray(files.file) ? files.file[0] : files.file;
-      const filePath = file.filepath; // la ruta temporal donde formidable guardó el archivo
+      const filePath = file.filepath;
 
-      // 3) Obtener el nombre (slug) del producto desde `fields.name`
+      // 3) Obtener el name (slug) desde fields
       if (!fields.name) {
-        res.status(400).json({ error: "El nombre (slug) del producto es obligatorio" });
+        res.status(400).json({ error: "El campo 'name' es obligatorio" });
         return;
       }
-      const productName = Array.isArray(fields.name) ? fields.name[0] : fields.name;
+      const productName = Array.isArray(fields.name) ? fields.name[0] : fields.name;  
+      // productName debe ser "MiProducto", no "Mi Producto"
 
       // 4) Subir a Cloudinary
       cloudinary.uploader.upload(filePath, { public_id: uuid() }, async (uploadErr, result) => {
         if (uploadErr) {
-          console.error("Error al subir a Cloudinary:", uploadErr);
-          res.status(500).json({ error: 'Hubo un error al subir la imagen a Cloudinary' });
+          console.error("Error subiendo a Cloudinary:", uploadErr);
+          res.status(500).json({ error: 'Hubo un error al subir la imagen' });
           return;
         }
         if (!result) {
-          res.status(500).json({ error: 'No se obtuvo respuesta de Cloudinary' });
+          res.status(500).json({ error: 'No se recibió resultado de Cloudinary' });
           return;
         }
 
-        // 5) Buscar el producto en la BD (usando el nombre = slug)
+        // 5) Buscar el producto
         const product = await Product.findOne({ name: productName });
         if (!product) {
-          res.status(404).json({ error: `Producto con name='${productName}' no encontrado` });
+          res.status(404).json({ error: `Producto '${productName}' no encontrado` });
           return;
         }
 
-        // 6) Guardar la URL de la imagen
+        // 6) Guardar la URL
         product.image = result.secure_url;
         await product.save();
 
-        // 7) Responder con éxito
         res.status(201).json({
-          message: 'Imagen subida y asignada correctamente al producto',
+          message: 'Imagen subida correctamente',
           imageUrl: product.image
         });
       });
     });
   } catch (e) {
     console.error('Error general en uploadImageP:', e);
-    res.status(500).json({ error: 'Hubo un error interno al subir la imagen' });
+    res.status(500).json({ error: 'Error interno al subir la imagen' });
   }
 };
+
+
 export async function getProducts(req: Request, res: Response) {
   try {
     const products = await Product.find(); 
@@ -257,25 +268,32 @@ export async function getProducts(req: Request, res: Response) {
   }
 }
 
-export const getProductByName = async (req: Request, res: Response): Promise<void> => {
+export const getProductByName = async (req: Request, res: Response) => {
   try {
     const { name } = req.params;
+    console.log(`🔍 Petición recibida para obtener el producto: "${name}"`);
+
     if (!name) {
-       res.status(400).json({ error: 'El nombre del producto es obligatorio' });
+      console.error("❌ No se recibió un nombre en la URL");
+      return res.status(400).json({ error: 'El nombre del producto es obligatorio' });
     }
 
     const decodedName = decodeURIComponent(name);
 
-    // Buscar en la BD comparando con lo que se almacenó (slug)
-    const product = await Product.findOne({ name: { $regex: new RegExp(`^${decodedName}$`, 'i') } });
+    console.log(`🔍 Buscando en la base de datos el producto: "${decodedName}"`);
+
+    const product = await Product.findOne({ name: { $regex: new RegExp(`^${decodedName}$`, "i") } });
+
     if (!product) {
-       res.status(404).json({ error: 'Producto no encontrado' });
+      console.log("❌ Producto no encontrado en la base de datos.");
+      return res.status(404).json({ error: 'Producto no encontrado' });
     }
 
+    console.log("✅ Producto encontrado:", product);
     res.json(product);
   } catch (error) {
-    console.error('Error getProductByName:', error);
-    res.status(500).json({ error: 'Error interno' });
+    console.error('❌ Error en el backend:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
 

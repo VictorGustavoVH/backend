@@ -1,3 +1,4 @@
+// models/Product.ts
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IProduct extends Document {
@@ -12,12 +13,12 @@ export interface IProduct extends Document {
   updatedAt?: Date;   // timestamps
 }
 
-const productSchema = new Schema<IProduct>(
+const productSchema = new Schema(
   {
     name: {
       type: String,
       required: true,
-      unique: true, 
+      unique: true, // si quieres que no se repita
     },
     description: {
       type: String,
@@ -31,7 +32,7 @@ const productSchema = new Schema<IProduct>(
       type: String,
       default: "",
     },
-    // Campos opcionales (puedes ajustarlos a tu gusto)
+    // Campos nuevos
     brand: {
       type: String,
       default: "",
