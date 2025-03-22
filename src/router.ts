@@ -98,7 +98,20 @@ router.post('/admin/product/register',
   body('category')
     .notEmpty()
     .withMessage('La categoria no puede estar vacia'),
-  authenticate, 
+    body('brand')
+    .optional()
+    .isString()
+    .withMessage('La marca debe ser un texto'),
+  body('price')
+    .optional()
+    .isNumeric()
+    .withMessage('El precio debe ser un número'),
+  body('stock')
+    .optional()
+    .isNumeric()
+    .withMessage('El stock debe ser un número'),
+    authenticate, 
+    handleInputErrors,
   createProduct
 );
 
