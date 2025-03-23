@@ -429,3 +429,48 @@ export const registerDevice = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ error: 'Error interno al registrar el dispositivo' });
   }
 };
+
+
+export const updateProduct = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params; // ID del producto
+    const fieldsToUpdate = { ...req.body };
+
+    // Si actualizas el name, podrías volver a slugificar:
+    if (fieldsToUpdate.name) {
+      // Ejemplo, si sigues usando slug
+      fieldsToUpdate.name = slug(fieldsToUpdate.name, '');
+    }
+
+    const updated = await Product.findByIdAndUpdate(id, fieldsToUpdate, {
+      new: true, // retorna el doc actualizado
+    });
+
+    if (!updated) {
+      res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    res.json({
+      message: 'Producto actualizado correctamente',
+      product: updated,
+    });
+  } catch (error) {
+    console.error('Error al actualizar producto:', error);
+    res.status(500).json({ error: 'Error interno al actualizar producto' });
+  }
+};
+export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const deleted = await Product.findByIdAndDelete(id);
+
+    if (!deleted) {
+      res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    res.json({ message: 'Producto eliminado correctamente' });
+  } catch (error) {
+    console.error('Error al eliminar producto:', error);
+    res.status(500).json({ error: 'Error interno al eliminar producto' });
+  }
+};
