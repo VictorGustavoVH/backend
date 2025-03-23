@@ -139,17 +139,32 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-export const createProduct = async (req: Request, res: Response) => {
-  const name = slug(req.body.name, '')
-  const nameExist = await Product.findOne({ name })
-  if (nameExist && nameExist.category !== req.body.category) {
-    const error = new Error('Producto ya registrado')
-    res.status(409).send({ error: error.message })
-    return
+export const createProduct = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // 1) Generar slug a partir del nombre enviado
+    const rawName = req.body.name; // "Mi Producto"
+    const slugName = slug(rawName, ''); // "MiProducto" (sin espacios)
+
+    // 2) Verificar si existe un producto con ese slug
+    const existing = await Product.findOne({ name: slugName });
+    if (existing) {
+      res.status(409).json({ error: 'Producto ya registrado' });
+    }
+
+    // 3) Crear el objeto Product, sobreescribiendo 'name' con el slug
+    //    Los demás campos (description, category, brand, price, etc.) se toman de req.body
+    const product = new Product({
+      ...req.body,
+      name: slugName
+    });
+
+    await product.save();
+
+    res.status(201).send('Producto registrado correctamente');
+  } catch (error) {
+    console.error('Error al crear producto:', error);
+    res.status(500).json({ error: 'Error interno al crear el producto' });
   }
-  const product = new Product(req.body)
-  await product.save()
-  res.status(201).send('Producto registrado correctamente')
 };
 
 export const getUsers = async (req: Request, res: Response) => {
@@ -187,18 +202,15 @@ export const uploadImageP = async (req: Request, res: Response): Promise<void> =
         res.status(400).json({ error: "No se envió ningún archivo con el campo 'file'" });
         return;
       }
-
       // form puede devolver `files.file` como array o como objeto
       const file = Array.isArray(files.file) ? files.file[0] : files.file;
       const filePath = file.filepath; // la ruta temporal donde formidable guardó el archivo
 
-      // 3) Obtener el nombre del producto desde `fields.name`
+      // 3) Obtener el nombre (slug) del producto desde `fields.name`
       if (!fields.name) {
-        res.status(400).json({ error: "El nombre del producto es obligatorio" });
+        res.status(400).json({ error: "El nombre (slug) del producto es obligatorio" });
         return;
       }
-
-      // fields.name a veces también puede ser array; lo convertimos a string
       const productName = Array.isArray(fields.name) ? fields.name[0] : fields.name;
 
       // 4) Subir a Cloudinary
@@ -213,7 +225,7 @@ export const uploadImageP = async (req: Request, res: Response): Promise<void> =
           return;
         }
 
-        // 5) Buscar el producto en la BD
+        // 5) Buscar el producto en la BD (usando el nombre = slug)
         const product = await Product.findOne({ name: productName });
         if (!product) {
           res.status(404).json({ error: `Producto con name='${productName}' no encontrado` });
@@ -245,32 +257,25 @@ export async function getProducts(req: Request, res: Response) {
   }
 }
 
-export const getProductByName = async (req: Request, res: Response) => {
+export const getProductByName = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name } = req.params;
-    console.log(`🔍 Petición recibida para obtener el producto: "${name}"`);
-
     if (!name) {
-      console.error("❌ No se recibió un nombre en la URL");
-      return res.status(400).json({ error: 'El nombre del producto es obligatorio' });
+       res.status(400).json({ error: 'El nombre del producto es obligatorio' });
     }
 
     const decodedName = decodeURIComponent(name);
 
-    console.log(`🔍 Buscando en la base de datos el producto: "${decodedName}"`);
-
-    const product = await Product.findOne({ name: { $regex: new RegExp(`^${decodedName}$`, "i") } });
-
+    // Buscar en la BD comparando con lo que se almacenó (slug)
+    const product = await Product.findOne({ name: { $regex: new RegExp(`^${decodedName}$`, 'i') } });
     if (!product) {
-      console.log("❌ Producto no encontrado en la base de datos.");
-      return res.status(404).json({ error: 'Producto no encontrado' });
+       res.status(404).json({ error: 'Producto no encontrado' });
     }
 
-    console.log("✅ Producto encontrado:", product);
     res.json(product);
   } catch (error) {
-    console.error('❌ Error en el backend:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    console.error('Error getProductByName:', error);
+    res.status(500).json({ error: 'Error interno' });
   }
 };
 
