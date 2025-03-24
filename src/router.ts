@@ -21,7 +21,8 @@
     registerDevice,
     getMyDevice,
     deleteProduct,
-    updateProduct
+    updateProduct,
+    
   } from './handlers';
   import { handleInputErrors } from './middleware/validation';
   import { authenticate } from './middleware/auth';
@@ -57,6 +58,9 @@
     ],
     createAccount
   );
+// Asegúrate de haber importado getProductByName y de registrar la ruta:
+router.get('/products/:name', getProductByName);
+
 
   router.get('/products', getProducts); 
 
