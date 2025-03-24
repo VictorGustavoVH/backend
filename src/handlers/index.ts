@@ -141,18 +141,16 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
 
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    // 1) Genera slug
     const rawName = req.body.name;
-    const slugName = slug(rawName, '');
+    let slugName = slug(rawName, '');
 
-    // 2) Verifica si existe
-    const existingProduct = await Product.findOne({ name: slugName });
+    // Verifica si existe y, en caso afirmativo, añade un sufijo único
+    let existingProduct = await Product.findOne({ name: slugName });
     if (existingProduct) {
-      res.status(409).json({ error: 'Producto ya registrado' });
-      return; // IMPORTANTE: para no seguir
+      slugName = `${slugName}-${Date.now()}`;
+      // También podrías omitir la verificación si prefieres permitir duplicados
     }
 
-    // 3) Crea el producto
     const product = new Product({
       name: slugName,
       description: req.body.description,
@@ -165,7 +163,6 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
 
     await product.save();
 
-    // 4) Retornamos el product o un mensaje con el slug
     res.status(201).json({
       message: 'Product created successfully',
       slug: product.name, 
@@ -175,6 +172,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ error: 'Error interno al crear el producto' });
   }
 };
+
 
 
 export const getUsers = async (req: Request, res: Response) => {
