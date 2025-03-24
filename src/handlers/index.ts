@@ -276,17 +276,20 @@ export async function getProductByName(
   try {
     const { name } = req.params;
     
-    // Si usas Mongoose o similar, busca el producto con name
-    // const product = await Product.findOne({ name });
-    
-    // Para este ejemplo, simulemos un producto
-    const product = { name, price: 100, description: 'Demo Product' };
+    // 1) Si guardas el "name" exactamente como el usuario lo escribió,
+    //    basta con:
+    const product = await Product.findOne({ name }).lean();
+    // lean() para obtener un plain object en vez de un documento Mongoose
+
+    // 2) Si estás usando "slug" al guardar (por ejemplo: "Laptop HP" -> "LaptopHP"),
+    //    entonces debes transformar "name" con slug antes de buscar:
+    // const productName = slug(name, '');
+    // const product = await Product.findOne({ name: productName }).lean();
 
     if (!product) {
        res.status(404).json({ error: 'Producto no encontrado' });
     }
 
-    // Simplemente retornamos la respuesta
     res.json(product);
   } catch (error) {
     next(error);
