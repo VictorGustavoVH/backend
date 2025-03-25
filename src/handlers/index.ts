@@ -80,8 +80,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const getUser = async (req: Request, res: Response): Promise<void> => {
-  const users = await User.find().select('username email rol');
-  res.json(users);
+  res.json(req.user);
 };
 
 export const updateProfile = async (req: Request, res: Response): Promise<void> => {
@@ -184,8 +183,8 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const updateUserRole = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { rol } = req.body; // Ahora se espera "rol"
-  await User.findByIdAndUpdate(id, { rol });
+  const { role } = req.body;
+  await User.findByIdAndUpdate(id, { role });
   res.json({ message: 'Rol actualizado' });
 };
 
