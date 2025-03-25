@@ -496,13 +496,9 @@ export const updatePagina = async (req: Request, res: Response): Promise<void> =
     const updated = await Pagina.findOneAndUpdate(
       { paginaName },
       fieldsToUpdate,
-      { new: true, upsert: false } // no se crea si no existe
+      { new: true, upsert: true } // upsert: true crea el documento si no existe
     );
 
-    if (!updated) {
-      res.status(404).json({ error: "Página no encontrada" });
-      return;
-    }
     res.json({ message: "Página actualizada correctamente", data: updated });
   } catch (error) {
     res.status(500).json({ error: "Error interno al actualizar la página" });
