@@ -177,14 +177,15 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
 
 
 export const getUsers = async (req: Request, res: Response) => {
-  const users = await User.find().select('username email role');
+  const users = await User.find().select('username email rol');
+
   res.json(users);
 };
 
 export const updateUserRole = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { role } = req.body;
-  await User.findByIdAndUpdate(id, { role });
+  const { rol } = req.body;
+  await User.findByIdAndUpdate(id, { rol });
   res.json({ message: 'Rol actualizado' });
 };
 
