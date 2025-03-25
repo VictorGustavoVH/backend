@@ -478,7 +478,8 @@ export const getPagina = async (req: Request, res: Response): Promise<void> => {
     const { paginaName } = req.params;
     const pagina = await Pagina.findOne({ paginaName });
     if (!pagina) {
-       res.status(404).json({ error: "Página no encontrada" });
+      res.status(404).json({ error: "Página no encontrada" });
+      return;
     }
     res.json(pagina);
   } catch (error) {
@@ -488,7 +489,6 @@ export const getPagina = async (req: Request, res: Response): Promise<void> => {
 
 // Actualizar la info de una "página"
 export const updatePagina = async (req: Request, res: Response): Promise<void> => {
-
   try {
     const { paginaName } = req.params;
     const fieldsToUpdate = { ...req.body };
@@ -496,11 +496,12 @@ export const updatePagina = async (req: Request, res: Response): Promise<void> =
     const updated = await Pagina.findOneAndUpdate(
       { paginaName },
       fieldsToUpdate,
-      { new: true, upsert: false } // upsert en false => no crea si no existe
+      { new: true, upsert: false } // no se crea si no existe
     );
 
     if (!updated) {
-       res.status(404).json({ error: "Página no encontrada" });
+      res.status(404).json({ error: "Página no encontrada" });
+      return;
     }
     res.json({ message: "Página actualizada correctamente", data: updated });
   } catch (error) {
