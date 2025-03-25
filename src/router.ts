@@ -164,22 +164,22 @@ router.delete('/admin/product/:id', authenticate, deleteProduct);
   router.get('/devices/me', authenticate, getMyDevice);
 
   // Obtener los datos de una página (requiere autenticación)
-      router.get('/admin/pagina/:paginaName', authenticate, getPagina);
+  router.get('/admin/pagina', authenticate, getPagina);
 
-// Actualizar la información de la página
-    router.patch(
-      '/admin/pagina/:paginaName',
-      authenticate,
-      body('quienesSomos').optional().isString(),
-      body('preguntasFrecuentes').optional().isString(),
-      body('mision').optional().isString(),
-      body('vision').optional().isString(),
-      body('valores').optional().isString(),
-      body('contacto').optional().isString(),
-      body('terminos').optional().isString(),
-      handleInputErrors,
-      updatePagina
-    );
+  // Actualizar la información de la página
+  router.patch(
+    '/admin/pagina',
+    authenticate,
+    body('quienesSomos').optional().isString(),
+    body('preguntasFrecuentes').optional().isString(),
+    body('mision').optional().isString(),
+    body('vision').optional().isString(),
+    body('valores').optional().isString(),
+    body('contacto').optional().isString(),
+    body('terminos').optional().isString(),
+    handleInputErrors,
+    updatePagina
+  );
 
   export default router;
   

@@ -475,8 +475,7 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
 };
 export const getPagina = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { paginaName } = req.params;
-    const pagina = await Pagina.findOne({ paginaName });
+    const pagina = await Pagina.findOne();
     if (!pagina) {
       res.status(404).json({ error: "Página no encontrada" });
       return;
@@ -487,14 +486,13 @@ export const getPagina = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Actualizar la info de una "página"
+// Actualizar la información de la página
 export const updatePagina = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { paginaName } = req.params;
     const fieldsToUpdate = { ...req.body };
 
     const updated = await Pagina.findOneAndUpdate(
-      { paginaName },
+      {}, // Actualiza el único documento que exista
       fieldsToUpdate,
       { new: true, upsert: true } // upsert: true crea el documento si no existe
     );
@@ -504,4 +502,3 @@ export const updatePagina = async (req: Request, res: Response): Promise<void> =
     res.status(500).json({ error: "Error interno al actualizar la página" });
   }
 };
-
