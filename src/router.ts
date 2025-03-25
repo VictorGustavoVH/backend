@@ -23,8 +23,8 @@
     deleteProduct,
     updateProduct,
     updatePagina,
-    getPagina
-    
+    getPagina,
+    getPaginaPublic
   } from './handlers';
   import { handleInputErrors } from './middleware/validation';
   import { authenticate } from './middleware/auth';
@@ -163,12 +163,9 @@ router.delete('/admin/product/:id', authenticate, deleteProduct);
   // Endpoint para consultar el dispositivo del usuario
   router.get('/devices/me', authenticate, getMyDevice);
 
-  // Obtener los datos de una página (requiere autenticación)
-  router.get('/admin/pagina', authenticate, getPagina);
-
-  // Actualizar la información de la página
+  router.get('/admin/pagina/:paginaName', authenticate, getPagina);
   router.patch(
-    '/admin/pagina',
+    '/admin/pagina/:paginaName',
     authenticate,
     body('quienesSomos').optional().isString(),
     body('preguntasFrecuentes').optional().isString(),
@@ -180,6 +177,9 @@ router.delete('/admin/product/:id', authenticate, deleteProduct);
     handleInputErrors,
     updatePagina
   );
+  
+  // Endpoint público para obtener el contenido de la página
+  router.get('/pagina/:paginaName', getPaginaPublic);
 
   export default router;
   

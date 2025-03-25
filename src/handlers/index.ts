@@ -473,9 +473,13 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ error: 'Error interno al eliminar producto' });
   }
 };
+
+
+// Handler protegido: obtener página (para administración)
 export const getPagina = async (req: Request, res: Response): Promise<void> => {
   try {
-    const pagina = await Pagina.findOne();
+    const { paginaName } = req.params;
+    const pagina = await Pagina.findOne({ paginaName });
     if (!pagina) {
       res.status(404).json({ error: "Página no encontrada" });
       return;
@@ -486,17 +490,37 @@ export const getPagina = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Actualizar la información de la página
+// Handler público: obtener página sin autenticación (para el frontend público)
+export const getPaginaPublic = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { paginaName } = req.params;
+    const pagina = await Pagina.findOne({ paginaName });
+    if (!pagina) {
+      res.status(404).json({ error: "Página no encontrada" });
+      return;
+    }
+    res.json(pagina);
+  } catch (error) {
+    res.status(500).json({ error: "Error interno al obtener la página" });
+  }
+};
+
+// Handler para actualizar la página
 export const updatePagina = async (req: Request, res: Response): Promise<void> => {
   try {
+    const { paginaName } = req.params;
     const fieldsToUpdate = { ...req.body };
 
     const updated = await Pagina.findOneAndUpdate(
-      {}, // Actualiza el único documento que exista
+      { paginaName },
       fieldsToUpdate,
-      { new: true, upsert: true } // upsert: true crea el documento si no existe
+      { new: true, upsert: false } // no crea si no existe
     );
 
+    if (!updated) {
+      res.status(404).json({ error: "Página no encontrada" });
+      return;
+    }
     res.json({ message: "Página actualizada correctamente", data: updated });
   } catch (error) {
     res.status(500).json({ error: "Error interno al actualizar la página" });
