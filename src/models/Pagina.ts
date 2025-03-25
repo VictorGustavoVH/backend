@@ -1,55 +1,27 @@
-// models/Product.ts
+// models/Pagina.ts
 import mongoose, { Document, Schema } from "mongoose";
 
-export interface IPAGINA extends Document {
-  Pagina: string;
-  QuienesSomos: string;
-  PreguntasF: string;
-  Respuesta: string;
-  Mision: string;
-  Vision: string;
-  Valores: string;
-  
-  createdAt?: Date;   // timestamps
-  updatedAt?: Date;   // timestamps
+export interface IPagina extends Document {
+  paginaName: string;          // Por ejemplo: "quienes-somos" o "preguntas-frecuentes"
+  quienesSomos: string;        // Texto de la sección "Quiénes Somos"
+  preguntasFrecuentes: string; // Texto o JSON con las FAQs
+  mision: string;
+  vision: string;
+  valores: string;
+  updatedAt?: Date;
+  createdAt?: Date;
 }
 
-const productSchema = new Schema(
+const PaginaSchema = new Schema<IPagina>(
   {
-    Pagina: {
-      type: String,
-      required: true,
-      unique: true, // si quieres que no se repita
-    },
-    QuienesSomos: {
-      type: String,
-      required: true,
-    },
-    PreguntasF: {
-      type: String,
-      required: true,
-    },
-    Respuesta: {
-        type: String,
-        required: true,
-        unique: true, // si quieres que no se repita
-      },
-    Mision: {
-        type: String,
-        required: true,
-    },
-    Vision: {
-        type: String,
-        required: true,
-    },
-    Valores: {
-        type: String,
-        required: true,
-    }
-    
+    paginaName: { type: String, required: true, unique: true },
+    quienesSomos: { type: String, default: "" },
+    preguntasFrecuentes: { type: String, default: "" },
+    mision: { type: String, default: "" },
+    vision: { type: String, default: "" },
+    valores: { type: String, default: "" },
   },
   { timestamps: true }
 );
 
-const Product = mongoose.model<IPAGINA>("Product", productSchema);
-export default Product;
+export default mongoose.model<IPagina>("Pagina", PaginaSchema);

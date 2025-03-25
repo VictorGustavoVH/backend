@@ -22,6 +22,8 @@
     getMyDevice,
     deleteProduct,
     updateProduct,
+    updatePagina,
+    getPagina
     
   } from './handlers';
   import { handleInputErrors } from './middleware/validation';
@@ -162,3 +164,16 @@ router.delete('/admin/product/:id', authenticate, deleteProduct);
   router.get('/devices/me', authenticate, getMyDevice);
 
   export default router;
+  router.get('/admin/pagina/:paginaName', authenticate, getPagina);
+  router.patch(
+    '/admin/pagina/:paginaName',
+    authenticate,
+    // Podrías agregar validaciones, p. ej.:
+    body('quienesSomos').optional().isString(),
+    body('preguntasFrecuentes').optional().isString(),
+    body('mision').optional().isString(),
+    body('vision').optional().isString(),
+    body('valores').optional().isString(),
+    handleInputErrors,
+    updatePagina
+  );

@@ -10,6 +10,7 @@ import { checkPassword, hashPassword } from '../utils/auth';
 import { generateJWT } from '../utils/jwt';
 import cloudinary from '../config/cloudinary';
 import Device from "../models/Device";
+import Pagina from "../models/Pagina";
 import DeviceHistory from "../models/DeviceHistory";
 import client from "../mqtt/mqttClient";
 
@@ -469,5 +470,39 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
   } catch (error) {
     console.error('Error al eliminar producto:', error);
     res.status(500).json({ error: 'Error interno al eliminar producto' });
+  }
+};
+export const getPagina = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { paginaName } = req.params;
+    const pagina = await Pagina.findOne({ paginaName });
+    if (!pagina) {
+       res.status(404).json({ error: "Página no encontrada" });
+    }
+    res.json(pagina);
+  } catch (error) {
+    res.status(500).json({ error: "Error interno al obtener la página" });
+  }
+};
+
+// Actualizar la info de una "página"
+export const updatePagina = async (req: Request, res: Response): Promise<void> => {
+
+  try {
+    const { paginaName } = req.params;
+    const fieldsToUpdate = { ...req.body };
+
+    const updated = await Pagina.findOneAndUpdate(
+      { paginaName },
+      fieldsToUpdate,
+      { new: true, upsert: false } // upsert en false => no crea si no existe
+    );
+
+    if (!updated) {
+       res.status(404).json({ error: "Página no encontrada" });
+    }
+    res.json({ message: "Página actualizada correctamente", data: updated });
+  } catch (error) {
+    res.status(500).json({ error: "Error interno al actualizar la página" });
   }
 };
