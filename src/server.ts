@@ -179,20 +179,26 @@ client.on('message', async (topic: string, message: Buffer) => {
           action = newState.alarma!.toLowerCase().includes('activada')
             ? 'activarAlarma'
             : 'desactivarAlarma';
-        } 
-        if (action === 'activarAlarma' && updatedDevice) {
-          const userId = updatedDevice.user;
-          if (userId) {
-            const user = await User.findById(userId);
-            if (user && user.expoPushToken) {
-              await sendPushNotification(user.expoPushToken, {
-                title: 'Alarma Activada',
-                body: 'La alarma se ha activado. Por favor, revisa tu dashboard.',
-                data: { screen: 'Dashboard' },
-              });
+        
+          if (action === 'activarAlarma' && updatedDevice) {
+            const userId = updatedDevice.user;
+            console.log('Se activa la alarma para el dispositivo:', updatedDevice);
+            if (userId) {
+              const user = await User.findById(userId);
+              if (user && user.expoPushToken) {
+                console.log('Enviando notificación a:', user.expoPushToken);
+                await sendPushNotification(user.expoPushToken, {
+                  title: 'Alarma Activada',
+                  body: 'La alarma se ha activado. Por favor, revisa tu dashboard.',
+                  data: { screen: 'Dashboard' },
+                });
+              } else {
+                console.log('El usuario no tiene token de notificación.');
+              }
             }
           }
         }
+        
         // Lógica para seguro
         else if (prop === 'seguro') {
           action = newState.seguro!.toLowerCase().includes('activo')
