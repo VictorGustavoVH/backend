@@ -8,11 +8,12 @@ import { connectDB } from './config/db';
 import { corsConfig } from './config/cors';
 import http from 'http';
 import { Server } from 'socket.io';
-
+import { sendPushNotification } from './utils/sendPushNotification';
 import client from './mqtt/mqttClient';  // <-- Cliente MQTT
 import Device from './models/Device';
 import DeviceHistory from './models/DeviceHistory';
 import { IDevice } from './models/Device';
+import User from './models/User';
 
 // Conecta la base de datos
 connectDB();
@@ -179,6 +180,19 @@ client.on('message', async (topic: string, message: Buffer) => {
             ? 'activarAlarma'
             : 'desactivarAlarma';
         } 
+        if (action === 'activarAlarma' && updatedDevice) {
+          const userId = updatedDevice.user;
+          if (userId) {
+            const user = await User.findById(userId);
+            if (user && user.expoPushToken) {
+              await sendPushNotification(user.expoPushToken, {
+                title: 'Alarma Activada',
+                body: 'La alarma se ha activado. Por favor, revisa tu dashboard.',
+                data: { screen: 'Dashboard' },
+              });
+            }
+          }
+        }
         // Lógica para seguro
         else if (prop === 'seguro') {
           action = newState.seguro!.toLowerCase().includes('activo')

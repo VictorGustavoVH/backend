@@ -12,6 +12,7 @@ export interface IUser extends Document {
   rol: 'usuario' | 'admin';
   createdAt: Date;
   updatedAt: Date;
+  expoPushToken: string | null;
 }
 
 const userSchema = new Schema<IUser>({
@@ -70,6 +71,10 @@ const userSchema = new Schema<IUser>({
   updatedAt: {
     type: Date,
     default: Date.now
+  },
+  expoPushToken: {
+    type: String,
+    default: null,
   }
 });
 

@@ -526,3 +526,17 @@ export const updatePagina = async (req: Request, res: Response): Promise<void> =
     res.status(500).json({ error: "Error interno al actualizar la página" });
   }
 };
+export const savePushToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?._id; // Asumiendo que "authenticate" mete user en req
+    const { token } = req.body;
+
+    // Actualizar el usuario con ese token
+    await User.findByIdAndUpdate(userId, { expoPushToken: token }, { new: true });
+
+     res.status(200).json({ message: 'Token guardado exitosamente' });
+  } catch (error) {
+    console.error('Error guardando token', error);
+    res.status(500).json({ error: 'Error guardando token' });
+  }
+};

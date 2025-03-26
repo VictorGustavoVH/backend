@@ -24,7 +24,8 @@
     updateProduct,
     updatePagina,
     getPagina,
-    getPaginaPublic
+    getPaginaPublic,
+    savePushToken
   } from './handlers';
   import { handleInputErrors } from './middleware/validation';
   import { authenticate } from './middleware/auth';
@@ -180,6 +181,6 @@ router.delete('/admin/product/:id', authenticate, deleteProduct);
   
   // Endpoint público para obtener el contenido de la página
   router.get('/pagina/:paginaName', getPaginaPublic);
-
+  router.post('/users/push-token', authenticate, savePushToken); 
   export default router;
   
