@@ -164,6 +164,17 @@ router.delete('/admin/product/:id', authenticate, deleteProduct);
   // Endpoint para consultar el dispositivo del usuario
   router.get('/devices/me', authenticate, getMyDevice);
 
+  router.post(
+    '/devices/register',
+    [
+      authenticate, // El usuario debe estar autenticado
+      body('deviceId').notEmpty().withMessage('El deviceId es obligatorio'),
+      handleInputErrors
+    ],
+    registerDevice
+  );
+  
+
   router.get('/admin/pagina/:paginaName', authenticate, getPagina);
   router.patch(
     '/admin/pagina/:paginaName',
