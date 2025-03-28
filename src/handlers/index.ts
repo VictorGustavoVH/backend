@@ -75,8 +75,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   // Generar el token con el rol incluido
   const token = generateJWT({ id: user._id, role: user.rol });
 
-  // Devolvemos token y rol en la misma respuesta
-  res.status(200).json({ message: 'Login successful', token, role: user.rol });
+  // Devolvemos token, rol y nombre para que el frontend pueda mostrar el nombre del usuario
+  res.status(200).json({ message: 'Login successful', token, role: user.rol, name: user.nombre });
 };
 
 export const getUser = async (req: Request, res: Response): Promise<void> => {
