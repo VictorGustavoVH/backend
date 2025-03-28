@@ -2,12 +2,14 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IPagina extends Document {
-  paginaName: string;          // Por ejemplo: "quienes-somos" o "preguntas-frecuentes"
-  quienesSomos: string;        // Texto de la sección "Quiénes Somos"
-  preguntasFrecuentes: string; // Texto o JSON con las FAQs
+  paginaName: string;          
+  quienesSomos: string;        
+  preguntasFrecuentes: string; 
   mision: string;
   vision: string;
   valores: string;
+  contacto: string;     // Agregado
+  terminos: string;     // Agregado
   updatedAt?: Date;
   createdAt?: Date;
 }
@@ -20,6 +22,8 @@ const PaginaSchema = new Schema<IPagina>(
     mision: { type: String, default: "" },
     vision: { type: String, default: "" },
     valores: { type: String, default: "" },
+    contacto: { type: String, default: "" },  // Agregado
+    terminos: { type: String, default: "" },   // Agregado
   },
   { timestamps: true }
 );
